@@ -125,10 +125,10 @@ pub enum ArgParseCause {
 ///         my_field: String,
 ///
 ///         #[subcommand("first-sub")]
-///         subcommand_one: Option<ScOne>,
+///         pub subcommand_one: Option<ScOne>,
 ///
 ///         #[subcommand("second-sub")]
-///         subcommand_two: Option<ScTwo>,
+///         pub(crate) subcommand_two: Option<ScTwo>,
 ///     }
 /// );
 /// ```
@@ -141,37 +141,37 @@ macro_rules! arg_parse {
         $vis:vis struct $ArgStruct:ident {
             $(
                 #[short($short_desc:expr), long($long_desc:expr), description($desc:expr)]
-                $required_field:ident: $req_ty:ty,
+                $req_vis:vis $required_field:ident: $req_ty:ty,
             )*
             $(
                 #[optional]
                 #[short($opt_short_desc:expr), long($opt_long_desc:expr), description($opt_desc:expr)]
-                $optional_field:ident: Option<$opt_ty:ty>,
+                $optional_vis:vis $optional_field:ident: Option<$opt_ty:ty>,
             )*
             $(
                 #[repeating]
                 #[short($rep_short_desc:expr), long($rep_long_desc:expr), description($rep_desc:expr)]
-                $repeating_field:ident: Vec<$rep_ty:ty>,
+                $repeating_field_vis:vis $repeating_field:ident: Vec<$rep_ty:ty>,
             )*
             $(
                 #[subcommand($sc_name:expr)]
-                $subcommand:ident: Option<$sc_ty:ty>,
+                $subcommand_vis:vis $subcommand:ident: Option<$sc_ty:ty>,
             )*
         }
     ) => {
         $(#[$outer])*
         $vis struct $ArgStruct {
             $(
-                $required_field: $req_ty,
+                $req_vis $required_field: $req_ty,
             )*
             $(
-                $optional_field: Option<$opt_ty>,
+                $optional_vis $optional_field: Option<$opt_ty>,
             )*
             $(
-                $repeating_field: Vec<$rep_ty>,
+                $repeating_field_vis $repeating_field: Vec<$rep_ty>,
             )*
             $(
-                $subcommand: Option<$sc_ty>,
+                $subcommand_vis $subcommand: Option<$sc_ty>,
             )*
         }
 
