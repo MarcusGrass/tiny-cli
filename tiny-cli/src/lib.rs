@@ -82,6 +82,7 @@ pub enum ArgParseCause {
 ///
 /// Ex:
 /// ```
+/// extern crate alloc;
 /// use tiny_cli::arg_parse;
 /// arg_parse!(
 ///     #[name("My nested command")]
@@ -136,6 +137,7 @@ macro_rules! arg_parse {
     (
         #[name($name:expr)]
         #[description($app_desc:expr)]
+        $(#[$outer:meta])*
         $vis:vis struct $ArgStruct:ident {
             $(
                 #[short($short_desc:expr), long($long_desc:expr), description($desc:expr)]
@@ -157,6 +159,7 @@ macro_rules! arg_parse {
             )*
         }
     ) => {
+        $(#[$outer])*
         $vis struct $ArgStruct {
             $(
                 $required_field: $req_ty,
@@ -177,6 +180,8 @@ macro_rules! arg_parse {
             #[allow(clippy::too_many_lines)]
             fn parse<'a>(it: &mut impl Iterator<Item=Result<&'a str, core::str::Utf8Error>>) -> Result<Self, $crate::ArgParseError> {
                 use core::str::FromStr;
+                #[allow(dead_code)]
+                use alloc::string::ToString;
                 $(let mut $required_field: Option<$req_ty> = None;)*
                 $(let mut $optional_field: Option<$opt_ty> = None;)*
                 $(let mut $repeating_field: Vec<$rep_ty> = Vec::new();)*
@@ -288,9 +293,9 @@ macro_rules! arg_parse {
 
         impl $ArgStruct {
             #[inline(never)]
-            fn gen_help() -> String {
+            fn gen_help() -> alloc::string::String {
                 use core::fmt::Write;
-                let mut help = format!("Usage: {} [OPTIONS] [COMMAND] ...\n{}\n", $name, $app_desc);
+                let mut help = alloc::format!("Usage: {} [OPTIONS] [COMMAND] ...\n{}\n", $name, $app_desc);
                 $(
                     let _ = help.write_fmt(format_args!("  -{}, --{} {}\n", $short_desc, $long_desc, $desc));
                 )*
@@ -328,6 +333,7 @@ mod tests {
     arg_parse! (
             #[name("My has all but subcommand cli")]
             #[description("Use for fun and profit")]
+            #[derive(Debug)]
             pub struct UseAllKindsArgs {
                 #[short("f"), long("field-1"), description("My first field")]
                 my_field: i32,
